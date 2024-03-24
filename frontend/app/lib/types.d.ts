@@ -5,7 +5,7 @@ declare module "next-auth" {
     email: string;
     college: string;
     profile: string;
-    entities: list;
+    entities: [];
     name: string;
     isMentor: boolean;
     password?: string;

@@ -10,7 +10,6 @@ const SigninButton = () => {
   if (session && session.user) {
     return (
       <div>
-        <p className="text-sky-600">{session.user.name}</p>
         <Button  href="/" as={Link} onClick={() => signOut()} color="primary">
           Sign Out
         </Button>

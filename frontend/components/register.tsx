@@ -5,6 +5,7 @@ import { Button } from "@nextui-org/button";
 import { useRouter } from "next/navigation";
 import { fastApiRequest } from "@/app/lib/fastapi";
 import { RadioGroup, Radio } from "@nextui-org/react";
+import { signIn } from "next-auth/react";
 import bcrypt from 'bcryptjs'; // Import bcryptjs instead of bcrypt
 
 type Props = {
@@ -24,33 +25,55 @@ const Login = (props: Props) => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
+    if (pass.current !== repeatpass.current) {
+      console.error("Passwords do not match");
+      return;
+    }
+  
     const formData = {
-      emailAddress: userName.current.valueOf(), // Access value property of the ref
+      emailAddress: userName.current,
       college: "",
       profile: "",
       entities: [],
       name: "",
-      isMentor: isMentor.current === "Student" ? false : true,
-      password: pass.current
+      isMentor: isMentor.current === "Student", // Convert to boolean directly
+      password: pass.current,
+      link: ""
     };
-
+  
     try {
-      // Hash the password asynchronously
       const hashedPassword = await bcrypt.hash(formData.password, saltRounds);
+      const plaintextPassword = formData.password;
       formData.password = hashedPassword;
-
+  
       const response = await fastApiRequest(`/register/${formData.emailAddress}`, 'POST', formData);
-
-      if (response.status === "entry added") {
-        router.push("/profilebuilder");
+  
+      if (response.status === 200) {
+        const res = await signIn("credentials", {
+          username: userName.current,
+          password: plaintextPassword,
+          redirect: false,
+        });
+        if (res && res.ok) {
+          router.push("/profilebuilder");
+          // Clear form fields after successful registration
+          userName.current = "";
+          pass.current = "";
+          repeatpass.current = "";
+          isMentor.current = "";
+        } else {
+          console.error("Error signing in after registration");
+        }
       } else {
-        console.error("Registration failed")
+        console.log(formData)
+        console.error("Registration failed");
       }
     } catch (error) {
       console.error("Error during registration:", error);
     }
   };
+  
   
   return (
     <section className="bg-white">
@@ -64,11 +87,6 @@ const Login = (props: Props) => {
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">
               Register your account
             </h1>
-            {!!props.error && (
-              <p className="bg-red-100 text-red-600 text-center p-2">
-                Authentication Failed
-              </p>
-            )}
           <form onSubmit={onSubmit} className="space-y-4 md:space-y-6 text-left" autoComplete="off">
           <Input
                 name="username"

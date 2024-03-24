@@ -1,7 +1,7 @@
-import { User } from "next-auth";
+import {User} from "next-auth";
 
-export async function fastApiRequest(path: string, req_type: string, payload: any): Promise<User> {
-    const url = "http://127.0.0.1:8000" + path;
+export async function fastApiRequest(path: string, req_type: string, payload: any): Promise<Response> {
+    const url = "http://127.0.0.1:8000/" + path;
     console.log(url);
     if (req_type === 'GET' ) {
         try {
@@ -12,8 +12,7 @@ export async function fastApiRequest(path: string, req_type: string, payload: an
             }
         };
             const response = await fetch(url, options);
-            const data: User = await response.json();
-            return data;
+            return response;
         } catch (error) {
             console.error("Error in API request:", error);
             throw error; // Rethrow the error for handling in the calling code
@@ -30,7 +29,7 @@ export async function fastApiRequest(path: string, req_type: string, payload: an
         };
             const response = await fetch(url, options);
             const data = await response.json()
-            return data;
+            return response;
 
         } catch (error) {
             console.error("Error in API request:", error);

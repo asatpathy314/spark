@@ -24,12 +24,14 @@ app.add_middleware(
 
 class Person(BaseModel):
     emailAddress: str
-    colleges: str
+    college: str
     profile: str
     entities: List[str]
     name: str
     isMentor: bool
     password: str
+    link: str
+    
 
 
 def getStudentByEmail(email: str):
@@ -37,12 +39,13 @@ def getStudentByEmail(email: str):
         if email == emails.get("emailAddress"):
             return {
                     "emailAddress": email,
-                    "colleges": emails.get("colleges"),
+                    "college": emails.get("college"),
                     "profile": emails.get("profile"),
                     "entities": emails.get("entities"),
                     "name": emails.get("name"),
                     "isMentor": emails.get("isMentor"),
                     "password": emails.get("password"),
+                    "link": emails.get("link")
                 }
 
     return None
@@ -57,23 +60,23 @@ def index():
 async def getStudent(email: str):
     return getStudentByEmail(email)
 
+
 @app.post("/register/{email}")
-async def register(email: str, person: Person):
-
-
+async def register(person: Person):
     registration = {
-        "emailAddress": email,
-        "colleges": None,
+        "emailAddress": person.emailAddress,
+        "college": None,
         "profile": None,
         "entities": None,
-        "name": person.name,
+        "name": None,
         "isMentor": person.isMentor,
         "password": person.password,
+        "link": person.link
     }
 
     collection.insert_one(registration)
 
-    if collection.find({"emailAddress": email}) != None:
+    if collection.find_one({"emailAddress": person.emailAddress}):
         return {"status": "entry added"}
     
     return {"status": "not added"}
@@ -85,12 +88,13 @@ async def updatedProfile(email: str, person: Person):
  
         userData = {
             "emailAddress": person.emailAddress,
-            "colleges": person.colleges,
+            "colleges": person.college,
             "profile": person.profile,
             "entities": person.entities,
             "name": person.name,
             "isMentor": person.isMentor,
             "password": person.password,
+            "link": person.link
         }
 
         for emails in collection.find({}):
