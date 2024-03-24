@@ -1,10 +1,8 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.encoders import jsonable_encoder
+from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.mongo_client import MongoClient
-from fastapi.encoders import jsonable_encoder
-from typing import List
+from typing import *
 import spacy
 
 
@@ -16,8 +14,6 @@ collection = db["person"]
     
 app = FastAPI()
 
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,12 +23,29 @@ app.add_middleware(
 )
 
 class Person(BaseModel):
-    name: str
-    colleges: str
-    profile: List[str]
-    isMentor: bool
     emailAddress: str
-    hashedPassword: str
+    colleges: str
+    profile: str
+    entities: List[str]
+    name: str
+    isMentor: bool
+    password: str
+
+
+def getStudentByEmail(email: str):
+    for emails in collection.find({}):
+        if email == emails.get("emailAddress"):
+            return {
+                    "emailAddress": email,
+                    "colleges": emails.get("colleges"),
+                    "profile": emails.get("profile"),
+                    "entities": emails.get("entities"),
+                    "name": emails.get("name"),
+                    "isMentor": emails.get("isMentor"),
+                    "password": emails.get("password"),
+                }
+
+    return None
 
 
 @app.get("/")
@@ -41,40 +54,56 @@ def index():
 
 
 @app.get("/getPerson/{email}")
-def getStudent(email: str):
-    for emails in collection.find({}):
-        if email == emails.get("emailAddress"):
-            return {
-                    "name": emails.get("name"),
-                    "colleges": emails.get("colleges"),
-                    "profile": emails.get("profile"),
-                    "isMentor": emails.get("isMentor"),
-                    "emailAddress": emails.get("emailAddress"),
-                    "hashedPassword": emails.get("hashedPassword")
-                }
-
-    return {"Entry" : "Not Found"}
+async def getStudent(email: str):
+    return getStudentByEmail(email)
 
 @app.post("/register/{email}")
 async def register(email: str, person: Person):
+
+
     registration = {
-        "name": None,
+        "emailAddress": email,
         "colleges": None,
         "profile": None,
+        "entities": None,
+        "name": person.name,
         "isMentor": person.isMentor,
-        "emailAddress": email,
-        "hashedPassword": person.hashedPassword
+        "password": person.password,
     }
 
     collection.insert_one(registration)
 
-    if collection.find({"email": email}) != None:
-        return {"Success": "entry added"}
+    if collection.find({"emailAddress": email}) != None:
+        return {"status": "entry added"}
     
-    return {"Error": "not added"}
+    return {"status": "not added"}
+
+
+@app.put("/updateProfile/{email}")
+async def updatedProfile(email: str, person: Person):
+    if getStudentByEmail(email) != None:
+ 
+        userData = {
+            "emailAddress": person.emailAddress,
+            "colleges": person.colleges,
+            "profile": person.profile,
+            "entities": person.entities,
+            "name": person.name,
+            "isMentor": person.isMentor,
+            "password": person.password,
+        }
+
+        for emails in collection.find({}):
+            if email == emails.get("emailAddress"):
+                collection.update_one({"email": email}, {"$set" : {**userData}})
+                return {"Status": "Profile was Updated"}
+            
+        
+        return {"Status": "Profile was not Updated"}
+
 
 @app.get("/matchUsers")
-def matchUsers():
+async def matchUsers():
     #First get All of the Profiles anc check if is a mentor then iterate through and grab perform the union and append each len 
     #of the union in a list and then
     #sort it by decesending order
@@ -95,12 +124,6 @@ def matchUsers():
         topMatches.append(matches[i])
 
     return topMatches
-
-
-
-        
-
-
 
 
 if __name__ == "__main__":

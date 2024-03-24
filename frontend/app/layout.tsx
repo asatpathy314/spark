@@ -7,6 +7,7 @@ import { fontSans } from "@/config/fonts";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/navbar";
 import { Link } from "@nextui-org/link";
+import {NextUIProvider} from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import clsx from "clsx";
 

@@ -11,7 +11,7 @@ const SigninButton = () => {
     return (
       <div>
         <p className="text-sky-600">{session.user.name}</p>
-        <Button onClick={() => signOut()} color="primary">
+        <Button  href="/" as={Link} onClick={() => signOut()} color="primary">
           Sign Out
         </Button>
       </div>

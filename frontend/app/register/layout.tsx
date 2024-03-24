@@ -1,4 +1,4 @@
-export default function StudentLayout({
+export default function DocsLayout({
 	children,
 }: {
 	children: React.ReactNode;

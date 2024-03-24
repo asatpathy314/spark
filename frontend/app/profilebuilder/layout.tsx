@@ -1,4 +1,4 @@
-export default function StudentLayout({
+export default function ProfileBuilder({
 	children,
 }: {
 	children: React.ReactNode;

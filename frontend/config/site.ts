@@ -4,10 +4,10 @@ export const siteConfig = {
 	name: "Next.js + NextUI",
 	description: "Make beautiful websites regardless of your design experience.",
 	navItems: [
-		{
-			label: "Home",
-			href: "/",
-		},
+	{
+		label: "Home",
+		href: "/",
+	},
     {
       label: "For Mentors",
       href: "/mentors",
@@ -24,37 +24,29 @@ export const siteConfig = {
 	],
 	navMenuItems: [
 		{
-			label: "Profile",
-			href: "/profile",
+			label: "Home",
+			href: "/",
 		},
 		{
-			label: "Dashboard",
-			href: "/dashboard",
+		  label: "For Mentors",
+		  href: "/mentors",
 		},
 		{
-			label: "Projects",
-			href: "/projects",
+		  label: "For Students",
+		  href: "/students",
 		},
 		{
-			label: "Team",
-			href: "/team",
+		  label: "About",
+		  href: "/about",
 		},
 		{
-			label: "Calendar",
-			href: "/calendar",
+			label: "Sign In",
+			href: "/signIn",
 		},
 		{
-			label: "Settings",
-			href: "/settings",
-		},
-		{
-			label: "Help & Feedback",
-			href: "/help-feedback",
-		},
-		{
-			label: "Logout",
-			href: "/logout",
-		},
+			label: "Register",
+			href: "/register"
+		}
 	],
 	links: {
 		github: "https://github.com/nextui-org/nextui",

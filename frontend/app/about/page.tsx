@@ -5,7 +5,7 @@ export default function AboutPage() {
 		<div>
 			<h1 className={title()}>About</h1>
 			<section>
-				<p> <br />Spark is a web app designed with Next.js, FastAPI, Postgre SQL, 
+				<p> <br />Spark is a web app designed with Next.js, TypeScript, FastAPI, MongoDB, 
 					and NLP to match underpriviledged high schooler to mentors at their
 					dream colleges. This project was created for HoosHack 2024.
 				</p>
