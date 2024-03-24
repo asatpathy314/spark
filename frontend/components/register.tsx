@@ -18,7 +18,7 @@ const saltRounds = 10;
 
 const Login = (props: Props) => {
   const router = useRouter();
-  const userName = useRef("");
+  const emailAddress = useRef("");
   const pass = useRef("");
   const repeatpass = useRef("");
   const isMentor = useRef("");
@@ -32,12 +32,12 @@ const Login = (props: Props) => {
     }
   
     const formData = {
-      emailAddress: userName.current,
+      emailAddress: emailAddress.current,
       college: "",
       profile: "",
       entities: [],
       name: "",
-      isMentor: isMentor.current === "Student", // Convert to boolean directly
+      isMentor: isMentor.current === "Mentor", // Convert to boolean directly
       password: pass.current,
       link: ""
     };
@@ -47,18 +47,18 @@ const Login = (props: Props) => {
       const plaintextPassword = formData.password;
       formData.password = hashedPassword;
   
-      const response = await fastApiRequest(`/register/${formData.emailAddress}`, 'POST', formData);
+      const response = await fastApiRequest(`register/${formData.emailAddress}`, 'POST', formData);
   
       if (response.status === 200) {
         const res = await signIn("credentials", {
-          username: userName.current,
+          email: emailAddress.current,
           password: plaintextPassword,
           redirect: false,
         });
         if (res && res.ok) {
           router.push("/profilebuilder");
           // Clear form fields after successful registration
-          userName.current = "";
+          emailAddress.current = "";
           pass.current = "";
           repeatpass.current = "";
           isMentor.current = "";
@@ -94,7 +94,7 @@ const Login = (props: Props) => {
                 type = "text"
                 placeholder="example@fakegmail.com"
                 className="block mb-2 text-sm font-medium text-gray-900"
-                onChange={(e:any) => (userName.current = e.target.value)}
+                onChange={(e:any) => (emailAddress.current = e.target.value)}
               >
               </Input>
               <Input
@@ -126,7 +126,7 @@ const Login = (props: Props) => {
           </RadioGroup>
             <div className="flex items-center justify-center mt-2 gap-2">
             <Button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-              Sign In
+              Register
             </Button>
           </div>
           </form>

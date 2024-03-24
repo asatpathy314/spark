@@ -4,6 +4,9 @@ import { useRef } from "react";
 import {signIn, signOut, useSession} from "next-auth/react";
 import { Input, Button} from '@nextui-org/react';
 import {Textarea} from "@nextui-org/react";
+import { fastApiRequest } from "../lib/fastapi";
+import { useRouter } from "next/navigation";
+
 
 
 
@@ -11,12 +14,31 @@ import {Textarea} from "@nextui-org/react";
 export default function ProfileBuilder() {
 	const { data: session, update} = useSession();
 	const name = useRef("")
+	const emailAddress = useRef("")
 	const profile = useRef("")
 	const link = useRef("")
+	const router = useRouter()
+	const college = useRef("")
+
+	
 	
 	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		update({name:"email@email.com"})
+		const formData = {
+			emailAddress : emailAddress.current,
+			college: college.current,
+			profile : profile.current,
+			name: name.current,
+			link : link.current
+		}
+		update({name:emailAddress})
 		e.preventDefault();
+		const response = await fastApiRequest(`updateProfile/${formData.emailAddress}`, 'PUT', formData);
+		if(response && response.ok) {
+			router.push("/matches")
+		}
+		else {
+			router.push("/")
+		}
 	  };
 	
 	if (session && session.user) {
@@ -28,11 +50,13 @@ export default function ProfileBuilder() {
 				<br/>
 				<br/>
 				<form onSubmit={onSubmit}>
-				<Input fullWidth placeholder="Your Name"/>
+				<Input fullWidth placeholder="Your Name" onChange={(e: any) => name.current = e.target.value} />
 				<br />
-				<Input fullWidth placeholder="Your Email"/>
+				<Input fullWidth placeholder="Your Email" onChange={(e: any) => emailAddress.current = e.target.value}/>
 				<br/>
-				<Input fullWidth placeholder="Your LinkedIn"/>
+				<Input fullWidth placeholder="Your Dream College! (or the one you're attending right now)" onChange={(e: any) => college.current = e.target.value}/>
+				<br/>
+				<Input fullWidth placeholder="Your LinkedIn" onChange={(e: any) => link.current = e.target.value}/>
 				<br/>
 				<Textarea
 					minRows={12}

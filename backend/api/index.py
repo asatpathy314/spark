@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import logging
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.mongo_client import MongoClient
@@ -7,6 +8,7 @@ import spacy
 
 
 # Create a new client and connect to the server
+logging.basicConfig(level=logging.INFO)
 client = MongoClient("mongodb+srv://admin:hoohacks2024@spark.qal3ew8.mongodb.net/")
 db = client["users"]
 collection = db["person"]
@@ -32,6 +34,12 @@ class Person(BaseModel):
     password: str
     link: str
     
+class UpdatePerson(BaseModel):
+    emailAddress: Optional[str] = None
+    college: Optional[str]
+    profile: Optional[str]
+    name: Optional[str]
+    link: Optional[str]
 
 
 def getStudentByEmail(email: str):
@@ -83,52 +91,79 @@ async def register(person: Person):
 
 
 @app.put("/updateProfile/{email}")
-async def updatedProfile(email: str, person: Person):
-    if getStudentByEmail(email) != None:
- 
-        userData = {
-            "emailAddress": person.emailAddress,
-            "colleges": person.college,
-            "profile": person.profile,
-            "entities": person.entities,
-            "name": person.name,
-            "isMentor": person.isMentor,
-            "password": person.password,
-            "link": person.link
-        }
+def update_student(email: str, person: UpdatePerson):
 
-        for emails in collection.find({}):
-            if email == emails.get("emailAddress"):
-                collection.update_one({"email": email}, {"$set" : {**userData}})
-                return {"Status": "Profile was Updated"}
-            
+    update_operations = {}
+
+    if person.name is not None:
+        update_operations["name"] = person.name
+
+    if person.profile is not None:
+        update_operations["profile"] = person.profile
+
+    if person.emailAddress is not None:
+        update_operations["emailAddress"] = person.emailAddress
+
+    if person.college is not None:
+        update_operations["college"] = person.college
+
+    if person.link is not None:
+        update_operations["link"] = person.link
+
+    if update_operations:
+        collection.update_one(
+            {"emailAddress": email},
+            {"$set": update_operations},
+        )
+        return {"message": "entry was successfully updated"}
+    else:
+        return {"message": "No valid fields to update"}
+
+
+@app.get("/getMatches/{email}")
+def get_matches(email: str):
+    #return three json objects with name, email, link, college
+    nlp = spacy.load('en_core_web_sm')
+    entries = []
+      # Retrieve document from MongoDB based on email
+    for idx, emails in enumerate(collection.find({})):
+        if emails.get("name"):
+            if idx==0:
+                entries.append({ "one":
+                        {"name": emails.get("name"),
+                        "emailAddress": email,
+                        "college": emails.get("college"),
+                        "link": emails.get("link")}
+                    })
+            elif idx==1:
+                    entries.append({ "two": {
+                        "name": emails.get("name"),
+                        "emailAddress": email,
+                        "college": emails.get("college"),
+                        "link": emails.get("link")}
+                    })
+            elif idx==2:
+                    entries.append({ "three": {
+                        "name": emails.get("name"),
+                        "emailAddress": email,
+                        "college": emails.get("college"),
+                        "link": emails.get("link")}
+                })
+    return entries
+
+
+
+
+    """
+    FUTURE WORK
+    person_profile_cursor = collection.find_one({"emailAddress": email})
+
+    if person_profile_cursor:
+        text = person_profile_cursor.get("profile", "")
+        doc = nlp(text)
+        entities = set(doc.ents)
         
-        return {"Status": "Profile was not Updated"}
-
-
-@app.get("/matchUsers")
-async def matchUsers():
-    #First get All of the Profiles anc check if is a mentor then iterate through and grab perform the union and append each len 
-    #of the union in a list and then
-    #sort it by decesending order
-    nlp = spacy.load("en_core_web_sm")
-    matches = []
-    topMatches = []
-
-    #students = [nlp(elem) for elem in collection.find({}, {"profile": 1})]
-    mentors = [nlp(elem) for elem in collection.find({}, {"profile": 1}) if elem.get("isMentor")]
-
-    for ent in mentors.ents:
-        lengths = len(set(mentors.ents).union(set(ent)))
-        matches.append((mentors.text, ent.text), lengths)
-
-    matches = sorted(matchUsers, reverse=True)
-
-    for i in range(0, 3):
-        topMatches.append(matches[i])
-
-    return topMatches
-
+    """
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

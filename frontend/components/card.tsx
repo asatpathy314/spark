@@ -1,28 +1,37 @@
-import { Card, CardBody, CardHeader, Textarea, Divider} from '@nextui-org/react'
-
+import { Card, CardBody, CardHeader, Divider} from '@nextui-org/react'
+import { title } from "@/components/primitives";
+import { Link } from '@nextui-org/react';
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
-    name: string;
-    email: string;
-    profile:string;
+    name : string;
+    email : string;
+    link : string;
+    college : string;
 }
 
-function card({...props}: Props)
+function CustomCard({...props}: Props)
 {
     return(
-        <Card isHoverable={true} shadow='md'>
+        <Card className = "py-3" isHoverable={true} shadow='md'>
             <CardHeader>
-                <Textarea placeholder='Enter your name:' onChange={(e) => e.target.value}>{props.name}</Textarea>
-                <Textarea placeholder='Enter your email:' onChange={(e) => e.target.value}>{props.email}</Textarea>
+                <h1 className={title()}>{props.name}</h1>
             </CardHeader>
+            <Divider orientation = 'horizontal'/>
+            <CardBody>
+            <p>{props.email}</p>
+            </CardBody>
             <Divider orientation='horizontal'/>
             <CardBody>
-                <Textarea placeholder='Enter your profile:' onChange={(e) => e.target.value}>{props.profile}</Textarea>
+            <Link href={props.link} underline="always">LinkedIn</Link>
+            </CardBody>
+            <Divider orientation='horizontal'/>
+            <CardBody>
+            <p>{props.college}</p>
             </CardBody>
         </Card>
     )
 }
-export default card;
+export default CustomCard;
 
 
 
