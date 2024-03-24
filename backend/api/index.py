@@ -1,7 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.mongo_client import MongoClient
+from fastapi.encoders import jsonable_encoder
+from typing import List
+import spacy
 
 
 # Create a new client and connect to the server
@@ -12,29 +16,23 @@ collection = db["person"]
     
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000"
-]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods = ["*"],
     allow_headers = ["*"]
 )
 
-
-class User(BaseModel):
+class Person(BaseModel):
     name: str
-    college: str
-    profile: str
-
-class Mentor(BaseModel):
-    name: str
-    college: str
-    profile: str
-
+    colleges: str
+    profile: List[str]
+    isMentor: bool
+    emailAddress: str
+    hashedPassword: str
 
 
 @app.get("/")
@@ -42,67 +40,67 @@ def index():
     return {"Welcome": "to Spark!"}
 
 
-@app.get("/name/") #FINISH
+@app.get("/getPerson/{email}")
+def getStudent(email: str):
+    for emails in collection.find({}):
+        if email == emails.get("emailAddress"):
+            return {
+                    "name": emails.get("name"),
+                    "colleges": emails.get("colleges"),
+                    "profile": emails.get("profile"),
+                    "isMentor": emails.get("isMentor"),
+                    "emailAddress": emails.get("emailAddress"),
+                    "hashedPassword": emails.get("hashedPassword")
+                }
 
+    return {"Entry" : "Not Found"}
 
+@app.post("/register/{email}")
+async def register(email: str, person: Person):
+    registration = {
+        "name": None,
+        "colleges": None,
+        "profile": None,
+        "isMentor": person.isMentor,
+        "emailAddress": email,
+        "hashedPassword": person.hashedPassword
+    }
 
-@app.get("/getStudent/")
-def getStudent():
-    return collection.find()
+    collection.insert_one(registration)
 
-
-
-@app.post("/registerStudent/{student_email}")
-async def registerStudent(student_email: str, user: User, request: Request):
-    student = {}
-    student[student_email] = user
-
-    collection.insert_one(student)
-
-    document = collection.find(student)
-
-    if document:
-        return {"Status": request.status_code}
-    else:
-        raise HTTPException(status_code=404)
-
-@app.post("/registerMentor/{mentor_email}")
-async def registerMentor(mentor_email: str, mentor: Mentor, request: Request):
-    mentor = {mentor_email: mentor}
-    collection.insert_one(mentor)
-
-    document = collection.find(mentor)
-
-    if document != None:
-        return request.status_code
-    else:
-        raise HTTPException(status_code=404)
+    if collection.find({"email": email}) != None:
+        return {"Success": "entry added"}
     
-@app.delete("/deleteStudent/{student_email}")
-async def deleteUser(student_id: str, user: User):
-    student = {student_id: user}
+    return {"Error": "not added"}
 
-    collection.delete_one(student)
+@app.get("/matchUsers")
+def matchUsers():
+    #First get All of the Profiles anc check if is a mentor then iterate through and grab perform the union and append each len 
+    #of the union in a list and then
+    #sort it by decesending order
+    nlp = spacy.load("en_core_web_sm")
+    matches = []
+    topMatches = []
 
-    if collection.find_one(student) == None:
-        return {"Success": "entry was deleted"}
-    
-    else:
-        return {"Error": "entry could not be deleted"}
-    
-    
+    #students = [nlp(elem) for elem in collection.find({}, {"profile": 1})]
+    mentors = [nlp(elem) for elem in collection.find({}, {"profile": 1}) if elem.get("isMentor")]
 
-@app.delete("/deleteMentor/{mentor_email}")
-async def deleteUser(mentor_id: str, mentor: Mentor):
-    mentor = {mentor_id: Mentor}
-    
-    collection.delete_one(mentor)
-    
-    if collection.find_one(mentor) == None:
-        return {"Success": "entry was deleted"}
-    
-    else:
-        return {"Error": "entry could not be deleted"}
+    for ent in mentors.ents:
+        lengths = len(set(mentors.ents).union(set(ent)))
+        matches.append((mentors.text, ent.text), lengths)
+
+    matches = sorted(matchUsers, reverse=True)
+
+    for i in range(0, 3):
+        topMatches.append(matches[i])
+
+    return topMatches
+
+
+
+        
+
+
 
 
 if __name__ == "__main__":

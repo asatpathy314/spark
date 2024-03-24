@@ -7,17 +7,13 @@ import {
 	NavbarItem,
 	NavbarMenuItem,
 } from "@nextui-org/navbar";
-import { Button } from "@nextui-org/button";
-import { Kbd } from "@nextui-org/kbd";
 import { Link } from "@nextui-org/link";
-import { Input } from "@nextui-org/input";
-import { useAuth0 } from "@auth0/auth0-react";
 import { link as linkStyles } from "@nextui-org/theme";
 
 import { siteConfig } from "@/config/site";
 import NextLink from "next/link";
 import clsx from "clsx";
-
+import SigninButton from "./signinbutton";
 import { Logo } from "@/components/icons";
 
 
@@ -50,14 +46,7 @@ export const Navbar = () => {
 						</NavbarItem>
 					))}
 				</ul>
-				<Button
-				href="/login/"
-				as={Link}
-				color="primary"
-				variant="solid"
-				>
-				Login
-				</Button>
+				<SigninButton />
 			</NavbarContent>
 			<NavbarMenu>
 			<div className="mx-4 mt-2 flex flex-col gap-2">
